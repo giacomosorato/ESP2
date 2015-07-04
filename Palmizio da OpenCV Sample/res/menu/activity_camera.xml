@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+
+	<item
+		android:id="@+id/menu_take_photo"
+		android:orderInCategory="1"
+		android:showAsAction="always|withText"
+		android:title="@string/menu_take_photo"/>
+	<item
+		android:id="@+id/menu_take_photo2"
+		android:orderInCategory="2"
+		android:showAsAction="always|withText"
+		android:title="niente"/>
+	
+</menu>
