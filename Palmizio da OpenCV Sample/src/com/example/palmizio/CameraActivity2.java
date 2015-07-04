@@ -39,78 +39,69 @@ import com.example.palmizio.R;
 import com.example.palmizio.LabActivity;
 import com.example.palmizio.WrapperC;
 
-
 @SuppressWarnings("deprecation")
-public final class CameraActivity2 extends ActionBarActivity implements CvCameraViewListener2 {
-	
+public final class CameraActivity2 extends ActionBarActivity implements
+		CvCameraViewListener2 {
 
-    private static final String TAG = CameraActivity2.class.getSimpleName(); // A tag for log output.
+	// A tag for log output.
+	private static final String TAG = CameraActivity2.class.getSimpleName();
 
+	// variabili di oggetti
 	private Camera mCamera;
 	private CameraPreview mPreview;
 	private PictureCallback mPicture;
-	private Mat photo;
-	private Button capture; 
-	private Button buS; 
-	private Button buDB; 
+
+	// variabili di layout
+	private Button capture;
+	private Button buS;
+	private Button buDB;
 	private Context myContext;
 	private LinearLayout cameraPreview;
-	private boolean cameraFront = false;
-	private byte[] export = null;
-	private DBHelper db;
-	
-/*	
-	private boolean cliccable = true;
-	
-	//metodi per gestire la concorrenza
-	public void setCliccableTRUE(){
-		cliccable = true;	
-	}
-	
-	public void setCliccableFALSE(){
-		cliccable = false;	
-	}
-*/
-    
- // The OpenCV loader callback.
-    private BaseLoaderCallback mLoaderCallback =
-            new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(final int status) {
-            switch (status) {
-            case LoaderCallbackInterface.SUCCESS:
-                Log.d(TAG, "OpenCV loaded successfully");
-                //mCameraView.enableView();
-                //mCameraView.enableFpsMeter();
-                break;
-            default:
-                super.onManagerConnected(status);
-                break;
-            }
-        }
-    };
-    
-    
-// --------------------------------ON_CREATE-----------------------------------------------------
 
-    @Override
-    protected void onCreate(final Bundle savedInstanceState) 
-    {
-        super.onCreate(savedInstanceState);
-        Log.e(TAG, "onCreate start");
-        setContentView(R.layout.camera_layout);
+	private boolean cameraFront = false;
+
+	// database
+	private DBHelper db;
+
+	// The OpenCV loader callback.
+	/**
+	 * Per il caricamento delle librerie opencv dal dispositivo.
+	 */
+	private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+		@Override
+		public void onManagerConnected(final int status) {
+			switch (status) {
+			case LoaderCallbackInterface.SUCCESS:
+				Log.d(TAG, "OpenCV loaded successfully");
+				break;
+			default:
+				super.onManagerConnected(status);
+				break;
+			}
+		}
+	};
+
+	/**
+	 * onCreate - inizializza gli elementi di cattura foto inizializza il
+	 * database nel caso sia vuoto.
+	 */
+	@Override
+	protected void onCreate(final Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		Log.e(TAG, "onCreate start");
+		setContentView(R.layout.camera_layout);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		myContext = this;
-		initialize();  
-		
-		db = new DBHelper(this);
-        if (db.numberOfPictures() == 0) db.init();
+		initialize();
 
-    }
-	
-	
-	// --------------------------------initialize----------------------------------------------------
-	// inizializza la preview ed il bottone di cattura
+		db = new DBHelper(this);
+		if (db.numberOfPictures() == 0)
+			db.init();
+	}
+
+	/**
+	 * metodo per l'inizializzazione della preview e del bottone di cattura.
+	 */
 	public void initialize() {
 		cameraPreview = (LinearLayout) findViewById(R.id.camera_preview);
 		mPreview = new CameraPreview(myContext, mCamera);
@@ -118,19 +109,26 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 
 		capture = (Button) findViewById(R.id.button_capture);
 		capture.setOnClickListener(captrureListener);
-		
+
 		buS = (Button) findViewById(R.id.button1000);
 		buS.setOnClickListener(captrureListener2);
-		
+
 		buDB = (Button) findViewById(R.id.button2000);
 		buDB.setOnClickListener(captrureListener3);
 	}
-	
+
 	// definizione dei captureListener - prezzione pulsante -> scatta foto
+	/**
+	 * Metodo in ascolto sulla premuta di un pulsante. Pulsante premuto: scatta
+	 * la foto.
+	 */
 	OnClickListener captrureListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
-			
+
+			// disabilito tutti i bottoni
+			// questo per evitare di andare in conflitto con il flusso di
+			// codice per la cattura della foto
 			capture.setEnabled(false);
 			capture.setClickable(false);
 			buS.setEnabled(false);
@@ -138,18 +136,23 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 			buDB.setEnabled(false);
 			buDB.setClickable(false);
 
-			mCamera.takePicture(null, null, mPicture);// prendi la foto
-			
-			//capture.setEnabled(true);
-			//capture.setClickable(true);
-				
+			// prendi la foto
+			mCamera.takePicture(null, null, mPicture);
+
 		}
 	};
-	
+
+	/**
+	 * Metodo in ascolto sulla premuta di un pulsante. Pulsante premuto: intent
+	 * per richiamare ViewDBActivity.
+	 */
 	OnClickListener captrureListener2 = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
 
+			// disabilito tutti i bottoni
+			// questo per evitare di andare in conflitto con il flusso di
+			// codice per la cattura della foto
 			capture.setEnabled(false);
 			capture.setClickable(false);
 			buS.setEnabled(false);
@@ -157,10 +160,12 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 			buDB.setEnabled(false);
 			buDB.setClickable(false);
 
+			// intent per richiamare l'activity ViewDBActivity
 			Intent intent = new Intent();
-			intent.setClass(getApplicationContext(),ViewDBActivity.class);
+			intent.setClass(getApplicationContext(), ViewDBActivity.class);
 			startActivity(intent);
 
+			// riabilito tutti i bottoni
 			capture.setEnabled(true);
 			capture.setClickable(true);
 			buS.setEnabled(true);
@@ -170,11 +175,18 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 
 		}
 	};
-	
+
+	/**
+	 * Metodo in ascolto sulla premuta di un pulsante. Pulsante premuto: intent
+	 * per richiamare HistoryActivity.
+	 */
 	OnClickListener captrureListener3 = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
 
+			// disabilito tutti i bottoni
+			// questo per evitare di andare in conflitto con il flusso di
+			// codice per la cattura della foto
 			capture.setEnabled(false);
 			capture.setClickable(false);
 			buS.setEnabled(false);
@@ -182,10 +194,12 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 			buDB.setEnabled(false);
 			buDB.setClickable(false);
 
+			// intent per richiamare l'activity HistoryActivity
 			Intent intent = new Intent();
-			intent.setClass(getApplicationContext(),HistoryActivity.class);
+			intent.setClass(getApplicationContext(), HistoryActivity.class);
 			startActivity(intent);
 
+			// riabilito tutti i bottoni
 			capture.setEnabled(true);
 			capture.setClickable(true);
 			buS.setEnabled(true);
@@ -195,98 +209,97 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 
 		}
 	};
-	
-	
-	
-	
-// --------------------------------ON_RESUME---------------------------------------------------------	
-	 @SuppressLint("NewApi")
-		@Override
-	    public void onResume() {
-	        super.onResume();
-	        
-	        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this, mLoaderCallback);
-	        
-			if (!hasCamera(myContext)) {
-				Toast toast = Toast.makeText(myContext, "Sorry, your phone does not have a camera!", Toast.LENGTH_LONG);
-				toast.show();
-				finish();
+
+	/**
+	 * onResume - setta i parametri della camera, la apre e lancia la callback
+	 * per catturare la foto.
+	 */
+	@Override
+	public void onResume() {
+		super.onResume();
+
+		OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_9, this,
+				mLoaderCallback);
+
+		if (!hasCamera(myContext)) {
+			Toast toast = Toast.makeText(myContext,
+					"Sorry, your phone does not have a camera!",
+					Toast.LENGTH_LONG);
+			toast.show();
+			finish();
+		}
+		if (mCamera == null) {
+			// apertura della camera
+			mCamera = Camera.open(findBackFacingCamera());
+
+			// parametri della camera
+			final Camera.Parameters parameters = mCamera.getParameters();
+			parameters
+					.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+			parameters.setPictureFormat(ImageFormat.JPEG);
+			parameters.setJpegQuality(100);
+
+			// Per determinare la dimensione della foto salvata
+			// usa il meglio che può.
+			List<Size> sizes = parameters.getSupportedPictureSizes();
+			Camera.Size size = sizes.get(0);
+			for (int i = 0; i < sizes.size(); i++) {
+				if (sizes.get(i).width > size.width)
+					size = sizes.get(i);
 			}
-			if (mCamera == null) {
-				// apertura della camera
-				mCamera = Camera.open(findBackFacingCamera());
-				
-				// parametri della camera
-				final Camera.Parameters parameters = mCamera.getParameters();
-				parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-				//parameters.setSceneMode(Camera.Parameters.SCENE_MODE_AUTO);
-				//parameters.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
-				//parameters.setExposureCompensation(0);
-				parameters.setPictureFormat(ImageFormat.JPEG);
-				parameters.setJpegQuality(100);
-				//parameters.setRotation(90);
-				
-				// Per determinare la dimensione della foto salvata
-				List<Size> sizes = parameters.getSupportedPictureSizes();
-				Camera.Size size = sizes.get(0);
-				for(int i=0; i<sizes.size(); i++)
-				{
-				    if(sizes.get(i).width > size.width)
-				        size = sizes.get(i);
+			parameters.setPictureSize(size.width, size.height);
+
+			// Per determinare la dimensione della preview
+			// usa il meglio che può.
+			Camera.Size bestSize = null;
+			List<Camera.Size> sizeList = mCamera.getParameters()
+					.getSupportedPreviewSizes();
+			bestSize = sizeList.get(0);
+			for (int i = 1; i < sizeList.size(); i++) {
+				if ((sizeList.get(i).width * sizeList.get(i).height) > (bestSize.width * bestSize.height)) {
+					bestSize = sizeList.get(i);
 				}
-				parameters.setPictureSize(size.width, size.height);
-				
-				
-				//parameters.setPictureSize(1920, 1080);
-				
-				// Per determinare la dimensione della preview
-				Camera.Size bestSize = null;
-				List<Camera.Size> sizeList = mCamera.getParameters().getSupportedPreviewSizes();
-				bestSize = sizeList.get(0);
-				for(int i = 1; i < sizeList.size(); i++)
-				{
-					if((sizeList.get(i).width * sizeList.get(i).height) > (bestSize.width * bestSize.height))
-					{
-				       bestSize = sizeList.get(i);
-					}
-				}
-				parameters.setPreviewSize(bestSize.width, bestSize.height);
-				
-				
-				//parameters.setPreviewSize(1024, 576);
-				
-				// per settare tutti i parametri impostati
-				mCamera.setParameters(parameters);
-				
-			    // callback per catturare la foto
-				mPicture = getPictureCallback();
-				
-				// camera refresh per continuare a vedere la preview
-				mPreview.refreshCamera(mCamera);
 			}
-	    }
-	
-	
-	// ---------------------------------hasCamera----------------------------------------------------
+			parameters.setPreviewSize(bestSize.width, bestSize.height);
+
+			// per settare tutti i parametri impostati
+			mCamera.setParameters(parameters);
+
+			// callback per catturare la foto
+			mPicture = getPictureCallback();
+
+			// camera refresh per continuare a vedere la preview
+			mPreview.refreshCamera(mCamera);
+		}
+	}
+
+	/**
+	 * Controlla se il device ha la camera
+	 * 
+	 * @param context
+	 * @return boolean
+	 */
 	private boolean hasCamera(Context context) {
-		//check if the device has camera
-		if (context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+		// check if the device has camera
+		if (context.getPackageManager().hasSystemFeature(
+				PackageManager.FEATURE_CAMERA)) {
 			return true;
 		} else {
 			return false;
 		}
 	}
-	
-	
-	// ---------------------------------findBackFacingCamera-----------------------------------------
-	// Controlla se c'ï¿½ la fotocamera (di tipo back, dietro al dispositivo) e ne ritorna l'id
-	@SuppressLint("NewApi")
+
+	/**
+	 * Ricerca la fotocamera posteriore
+	 * 
+	 * @return cameraId, l'id della fotocamera trovata
+	 */
 	private int findBackFacingCamera() {
 		int cameraId = -1;
-		//Search for the back facing camera
-		//get the number of cameras
+		// Search for the back facing camera
+		// get the number of cameras
 		int numberOfCameras = Camera.getNumberOfCameras();
-		//for every camera check
+		// for every camera check
 		for (int i = 0; i < numberOfCameras; i++) {
 			CameraInfo info = new CameraInfo();
 			Camera.getCameraInfo(i, info);
@@ -298,82 +311,91 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 		}
 		return cameraId;
 	}
-	
-	// ---------------------------------getPictureCallback-------------------------------------------
-	// callBack per l'acquisizione delle foto
-	private PictureCallback getPictureCallback() 
-	{
-		final PictureCallback picture = new PictureCallback() 
-		{
+
+	/**
+	 * Elaborazione della foto scattata (sistemazione colori RGB,
+	 * ridimensionamento, estrazione quadro) e salvataggio dell'immagine
+	 * risultante. Chiamata tramite intent di LabActivity.
+	 * 
+	 * @return Picture
+	 */
+	private PictureCallback getPictureCallback() {
+		final PictureCallback picture = new PictureCallback() {
 
 			@Override
-			public void onPictureTaken(byte[] data, Camera camera) 
-			{				
+			public void onPictureTaken(byte[] data, Camera camera) {
 				// converto il parametro d'ingresso da byte a bitmap
-				//BitmapFactory.Options options = new BitmapFactory.Options();
-		        //options.inJustDecodeBounds = true;
-		        Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-				
-		        // converto da bitmap a Mat
-		        Mat mInput = new Mat();
-		        Bitmap bmp1 = bmp.copy(Bitmap.Config.ARGB_8888, true);
-		        Utils.bitmapToMat(bmp1, mInput);
-		        
-		      //ridimensiono l'immagine per migliorare le prestazioni:
-				org.opencv.core.Size size = new org.opencv.core.Size(mInput.width()/4, mInput.height()/4);
-				Imgproc.resize(mInput, mInput, size);
-		        
-				Imgproc.cvtColor(mInput,mInput, Imgproc.COLOR_RGBA2BGR, 3);
-								
-		        // mat di output
-		        Mat mOutput = new Mat();
-		        
-		        // chiamo metodo nativo findRect
-				WrapperC.JFindRect(mInput.getNativeObjAddr(), mOutput.getNativeObjAddr());
-				
-				
-				// genero la path dove salvare la foto
-				final String photoPath = getExternalFilesDir(null).toString() + File.separator + "TempFile.jpg";
-						       
-		        Toast toast = null;		        
-		        
-		        // provo a salvare la foto
-		        if (!Highgui.imwrite(photoPath, mOutput)) {
-		        	toast = Toast.makeText(myContext, "Failed ti take picture", Toast.LENGTH_LONG);
-		            Log.e(TAG, "Failed to save photo to " + photoPath);
-		            onTakePhotoFailed();
-		        } else {
-		        	toast = Toast.makeText(myContext, "Picture taked", Toast.LENGTH_LONG);
-		        	Log.d(TAG, "Photo saved successfully to " + photoPath);
-		        }
+				// BitmapFactory.Options options = new BitmapFactory.Options();
+				// options.inJustDecodeBounds = true;
+				Bitmap bmp = BitmapFactory
+						.decodeByteArray(data, 0, data.length);
 
+				// converto da bitmap a Mat
+				Mat mInput = new Mat();
+				Bitmap bmp1 = bmp.copy(Bitmap.Config.ARGB_8888, true);
+				Utils.bitmapToMat(bmp1, mInput);
+
+				// ridimensiono l'immagine per migliorare le prestazioni:
+				org.opencv.core.Size size = new org.opencv.core.Size(
+						mInput.width() / 4, mInput.height() / 4);
+				Imgproc.resize(mInput, mInput, size);
+
+				Imgproc.cvtColor(mInput, mInput, Imgproc.COLOR_RGBA2BGR, 3);
+
+				// mat di output
+				Mat mOutput = new Mat();
+
+				// chiamo metodo nativo findRect
+				WrapperC.JFindRect(mInput.getNativeObjAddr(),
+						mOutput.getNativeObjAddr());
+
+				// genero la path dove salvare la foto
+				final String photoPath = getExternalFilesDir(null).toString()
+						+ File.separator + "TempFile.jpg";
+
+				Toast toast = null;
+
+				// provo a salvare la foto
+				if (!Highgui.imwrite(photoPath, mOutput)) {
+					toast = Toast.makeText(myContext, "Failed ti take picture",
+							Toast.LENGTH_LONG);
+					Log.e(TAG, "Failed to save photo to " + photoPath);
+					onTakePhotoFailed();
+				} else {
+					toast = Toast.makeText(myContext, "Picture taked",
+							Toast.LENGTH_LONG);
+					Log.d(TAG, "Photo saved successfully to " + photoPath);
+				}
+
+				// visualizzazione del toast
 				toast.show();
-				
-				// Open the photo in LabActivity.
-		        final Intent intent = new Intent(myContext, LabActivity.class);
-		        
-		        intent.putExtra("path",getExternalFilesDir(null).toString() + File.separator + "TempFile.jpg");
-		        startActivity(intent);
-		        
+
+				// Apertura della foto in LabActivity
+				final Intent intent = new Intent(myContext, LabActivity.class);
+
+				// passagio della path della foto
+				intent.putExtra("path", getExternalFilesDir(null).toString()
+						+ File.separator + "TempFile.jpg");
+				startActivity(intent);
+
 				return;
-				//refresh camera to continue preview
-				//mPreview.refreshCamera(mCamera);
 			}
-		};	
-		
+		};
+
+		// riabilito tutti i bottoni dopo che la foto è stata presa
 		capture.setEnabled(true);
 		capture.setClickable(true);
 		buS.setEnabled(true);
 		buS.setClickable(true);
 		buDB.setEnabled(true);
 		buDB.setClickable(true);
-		
+
 		return picture;
 	}
-    
 
-    // ---------------------------------releaseCamera------------------------------------------------
-	// per il rilascio della camera (capita ogni volta che l'app entra in onPause )
+	/**
+	 * Rilascio della camera
+	 */
 	private void releaseCamera() {
 		// stop and release camera
 		if (mCamera != null) {
@@ -381,56 +403,76 @@ public final class CameraActivity2 extends ActionBarActivity implements CvCamera
 			mCamera = null;
 		}
 	}
-  
-	// ---------------------------------onTakePhotoFailed--------------------------------------------
-    private void onTakePhotoFailed() {
-        //mIsMenuLocked = false;
-        
-        // Show an error message.
-        final String errorMessage =
-                getString(R.string.photo_error_message);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(CameraActivity2.this, errorMessage,
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
- // ------------------------------------ON_PAUSE-----------------------------------------------------   
-    @Override
-    public void onPause() {
-        super.onPause();
-        
-        // release database
-        if (db!=null)
-        	db.close();
-        
-        // when on Pause, release camera in order to be used from other applications
-        releaseCamera();
-    }
-    
-   
-    // ----------------------------------METODO NATIVO----------------------------------------------- 
-	//dichiarazione metodo nativo:
+
+	/**
+	 * Metodo chiamato quando si fallisce la cattura di una foto, ritorna un
+	 * messaggio di errore in un toast.
+	 */
+	private void onTakePhotoFailed() {
+		// mIsMenuLocked = false;
+
+		// Show an error message.
+		final String errorMessage = getString(R.string.photo_error_message);
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(CameraActivity2.this, errorMessage,
+						Toast.LENGTH_SHORT).show();
+			}
+		});
+	}
+
+	/**
+	 * onPause - Chiusura del db e rilascio della camera.
+	 */
+	@Override
+	public void onPause() {
+		super.onPause();
+
+		// release database
+		if (db != null)
+			db.close();
+
+		// when on Pause, release camera in order to be used from other
+		// applications
+		releaseCamera();
+	}
+
+	/**
+	 * Dichiarazione del metodo nativo utilizzato - FindRect
+	 * 
+	 * @param src_p
+	 *            , indirizzo di memoria della matrice contenente l'immagine
+	 *            sorgente
+	 * @param dst_r
+	 *            , indirizzo di memoria della matrice contenente l'immagine
+	 *            destinazione
+	 */
 	public native void FindRect(long src_p, long dst_r);
 
-	
-	// ---------------------------------------------------------------------------------------------- 
+	/**
+	 * Non implementato.
+	 */
 	@Override
 	public void onCameraViewStarted(int width, int height) {
 		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Non implementato.
+	 */
 	@Override
 	public void onCameraViewStopped() {
 		// TODO Auto-generated method stub
 	}
 
+	/**
+	 * Non implementato.
+	 */
 	@Override
 	public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 }
